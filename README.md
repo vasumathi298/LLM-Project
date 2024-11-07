@@ -1,6 +1,6 @@
 # Bhagavad Gita Question Answering System
 
-This project is a question-answering system focused on the Bhagavad Gita. It processes text files and PDFs to generate a searchable vector database for retrieving contextually relevant answers from the text. Users can ask questions, and the system leverages LangChain and OpenAI's models to provide responses based on the embedded documents.
+This project is an intelligent question-answering system centered around the teachings of the Bhagavad Gita, designed to offer insights and references that can support mental well-being. By quoting and referring to passages from this ancient text, the system helps users explore valuable perspectives from the Gita. It processes text files and PDFs to create a searchable vector database, enabling contextually relevant answers based on user queries. With the integration of LangChain and OpenAI models, it provides insightful responses grounded in the embedded content of the Bhagavad Gita.
 
 ## Features
 
