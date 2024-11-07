@@ -31,7 +31,8 @@ This project is a question-answering system focused on the Bhagavad Gita. It pro
 ## To Dos
 - Maintain chat History In UI.
 - How to handle unexpected questions?
-
+- Host it on web using Docker
+- Build an App in Swift
 
 ## Sample Q&A
 ![image](https://github.com/user-attachments/assets/05764c5b-9627-48c6-8f70-356a8559549c)
