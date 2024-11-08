@@ -37,5 +37,5 @@ This project is an intelligent question-answering system centered around the tea
 
 ## Sample Q&A
 ![image](https://github.com/user-attachments/assets/05764c5b-9627-48c6-8f70-356a8559549c)
-![image](https://github.com/user-attachments/assets/1bf83e3e-8609-4814-9a96-00fbc7bacf9d)
+
 
