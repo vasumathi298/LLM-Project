@@ -30,7 +30,7 @@ This project is an intelligent question-answering system centered around the tea
 
 ## To Dos
 - Maintain chat History In UI.
-- Fine-tuning Model Responses
+- Fine-tuning Model Responses-- (Need more context)
 - How to handle unexpected questions?
 - Host it on web using Docker
 - Build an App in Swift
