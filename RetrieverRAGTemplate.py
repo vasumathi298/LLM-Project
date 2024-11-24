@@ -8,6 +8,8 @@ from langchain_community.vectorstores import Chroma
 from langchain_community.embeddings import SentenceTransformerEmbeddings
 from dotenv import load_dotenv
 import os
+from textblob import TextBlob
+from langchain.llms import OpenAI
 
 # Load environment variables
 load_dotenv()
@@ -51,14 +53,14 @@ rag_prompt = PromptTemplate(
     template=template,
     input_variables=["context", "chat_history", "question"]
 )
-def format_docs(docs):
-    return "\n\n".join(f"Chapter {doc.metadata.get('chapter', 'N/A')}, Verse {doc.metadata.get('verse', 'N/A')}: {doc.page_content}" for doc in docs)
 
 # Define the state
 class State(TypedDict):
     messages: Annotated[list, "The messages in the conversation"]
     context: Annotated[str, "Retrieved context"]
     question: Annotated[str, "User question"]
+    sentiment: Annotated[str, "User's sentiment"]  # For sentiment analysis
+    feedback: Annotated[str, "User feedback"]  # For feedback collection
 
 # Create a Streamlit callback handler
 class StreamlitCallbackHandler(BaseCallbackHandler):
@@ -73,14 +75,53 @@ class StreamlitCallbackHandler(BaseCallbackHandler):
 # Set up the LLM
 llm = ChatOpenAI(temperature=0, streaming=True, openai_api_key=openai_api_key, max_tokens=1500)
 
-# Create the graph
+# Initialize the state graph
 graph = StateGraph(State)
 
-# Define the nodes
+# Define the new nodes
+
+# Sentiment analysis node
+def sentiment_analysis(state: State):
+    user_message = state["messages"][-1]["content"]
+    sentiment = TextBlob(user_message).sentiment.polarity
+    state["sentiment"] = "positive" if sentiment > 0 else "negative" if sentiment < 0 else "neutral"
+    return state
+
+# Context summarization node
+def summarize_context(state: State):
+    llm = OpenAI(openai_api_key=openai_api_key)
+    summary = llm.invoke(f"Summarize the following: {state['context']}")
+    
+    # The response is likely a string, so directly assign it to the context
+    state["context"] = summary  # No need to access .content
+    return state
+
+
+# Fact verification node
+def verify_facts(state: State):
+    # Dummy example of fact verification (can be replaced with real logic)
+    verified_context = "Verified Context: " + state["context"]
+    state["context"] = verified_context
+    return state
+
+# Knowledge expansion node
+def expand_knowledge(state: State):
+    additional_context = "From Srimad Bhagavatam: ..."  # Example expansion
+    state["context"] += f"\n\nAdditional Insights: {additional_context}"
+    return state
+
+# Feedback collection node
+def collect_feedback(state: State):
+    st.write("Was this answer helpful?")
+    feedback = st.radio("Feedback", ["Yes", "No", "Somewhat"], index=0)
+    state["feedback"] = feedback
+    return state
+
+# Define the retrieval node
 def retrieve_context(state: State):
     question = state["messages"][-1]["content"]
     docs = retriever.get_relevant_documents(question)
-    new_context = format_docs(docs)
+    new_context = "\n\n".join(f"Chapter {doc.metadata.get('chapter', 'N/A')}, Verse {doc.metadata.get('verse', 'N/A')}: {doc.page_content}" for doc in docs)
 
     combined_context = f"{state.get('context', '')}\n\n{new_context}".strip()
 
@@ -90,6 +131,7 @@ def retrieve_context(state: State):
         "question": question
     }
 
+# Define the response generation node
 def generate_response(state: State):
     chat_history = "\n".join([f"{m['role']}: {m['content']}" for m in state["messages"][:-1]])
     
@@ -109,12 +151,22 @@ def generate_response(state: State):
         "question": state["question"]
     }
 
-# Set up the graph
+# Add nodes to the graph
+graph.add_node("sentiment_analysis", sentiment_analysis)
+graph.add_node("summarizer", summarize_context)
+graph.add_node("fact_verifier", verify_facts)
+graph.add_node("knowledge_expansion", expand_knowledge)
 graph.add_node("retriever", retrieve_context)
 graph.add_node("generator", generate_response)
+
+# Set the graph flow
 graph.set_entry_point("retriever")
-graph.add_edge("retriever", "generator")
-graph.add_edge("generator", END)
+graph.add_edge("retriever", "sentiment_analysis")  # Sentiment analysis after retrieving context
+graph.add_edge("sentiment_analysis", "summarizer")  # Summarize context if needed
+graph.add_edge("summarizer", "fact_verifier")  # Verify facts before generating the response
+graph.add_edge("fact_verifier", "generator")  # Generate the final response
+graph.add_edge("generator", "knowledge_expansion")  # Optionally expand knowledge after generating
+graph.add_edge("knowledge_expansion", END)  # End after expanding knowledge
 
 # Compile the graph
 app = graph.compile()
@@ -126,13 +178,17 @@ if "state" not in st.session_state:
     st.session_state.state = {
         "messages": [],
         "context": "",
-        "question": ""
+        "question": "",
+        "sentiment": "",
+        "feedback": ""
     }
 
+# Display previous conversation
 for message in st.session_state.state["messages"]:
     with st.chat_message(message["role"]):
         st.markdown(message["content"])
 
+# Handle user input
 if prompt := st.chat_input("Ask your question about the Bhagavad Gita:"):
     st.session_state.state["messages"].append({"role": "user", "content": prompt})
     with st.chat_message("user"):
