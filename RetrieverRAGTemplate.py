@@ -40,9 +40,10 @@ Previous conversation:
 Devotee's Question: {question}
 
 Instructions:
-1. If the question asks for a specific verse, always quote the exact verse in Sanskrit and provide its English translation.
-2. Include the chapter and verse number (e.g., BG 16.7) when referencing a verse.
-3. After quoting the verse, provide an explanation based on Srila Prabhupada's teachings.
+1. If the question asks for a specific verse, always provide the exact verse in Sanskrit transliteration first.
+2. Then provide the English translation.
+3. Include the chapter and verse number (e.g., BG 7.28) when referencing a verse.
+4. After quoting the verse, provide an explanation based on Srila Prabhupada's teachings.
 
 My dear devotee, let me explain this point according to the Bhagavad Gita's teachings:"""
 
@@ -70,7 +71,7 @@ class StreamlitCallbackHandler(BaseCallbackHandler):
         self.container.markdown(self.text)
 
 # Set up the LLM
-llm = ChatOpenAI(temperature=0, streaming=True, openai_api_key=openai_api_key)
+llm = ChatOpenAI(temperature=0, streaming=True, openai_api_key=openai_api_key, max_tokens=1500)
 
 # Create the graph
 graph = StateGraph(State)
