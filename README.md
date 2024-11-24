@@ -20,6 +20,8 @@ This project is an intelligent question-answering system centered around the tea
 - **PyMuPDF (fitz)**: Library to process and extract text from PDF files.
 - **BeautifulSoup**: Library for web scraping to fetch lecture transcripts.
 - **Streamlit**: Framework for building the web-based user interface.
+- **LangGraph**: A graph-based workflow engine for defining and executing multi-step processes, such as context retrieval and response generation.
+
 
 ## Setup Instructions
 
